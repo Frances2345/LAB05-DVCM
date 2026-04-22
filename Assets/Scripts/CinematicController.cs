@@ -2,69 +2,103 @@ using UnityEngine;
 using Sirenix.OdinInspector;
 using Unity.Cinemachine;
 using System.Collections.Generic;
+using TMPro;
 
 public class CinematicController : MonoBehaviour
 {
     public List<CinemachineCamera> CinematicCameras;
     public int currentCinematicCamera;
 
-
-    public CinemachineCamera FollowCamera1;
-    public CinemachineCamera FollowCamera2;
     public CinemachineCamera PlayerCam;
+    public CinemachineCamera Dolly;
+
+    public MonoBehaviour PlayerController;
+
+    public TextMeshProUGUI timerText;
+    public float timer;
+
+    public float timePerCamera;
+    public int Index = -1;
+    private bool SequenceActive = true;
+
     void Start()
     {
+        if(PlayerController != null)
+        {
+            PlayerController.enabled = false;
+        }
         InvokeRepeating(nameof(SwitchCamera), 0f, 15f);
     }
+
+    private void Update()
+    {
+        timer += Time.deltaTime;
+        if(timerText != null)
+        {
+            timerText.text = "Tiempo: " + (int)timer + "s";
+        }
+    }
+
     [Button]
     public void SwitchCamera()
     {
-        bool activateCamera = Random.Range(0f, 1f) > 0.5f;
-        int currentCinematicCamera = Random.Range(0, CinematicCameras.Count);
-
-        for (int i = 0; i < CinematicCameras.Count; i++)
+        if(!SequenceActive)
         {
-            if (i == currentCinematicCamera && activateCamera)
-                CinematicCameras[i].Priority = 11;
-            else
-                CinematicCameras[i].Priority = 0;
+            return;
         }
-       
+
+        Dolly.Priority = 0;
+
+        foreach(var cam in CinematicCameras) cam.Priority = 0;
+
+        if(Index == -1)
+        {
+            Dolly.Priority = 20;
+        }
+        else if (Index < CinematicCameras.Count)
+        {
+            CinematicCameras[Index].Priority = 20;
+        }
+        else
+        {
+            CinematicEnd();
+            return;
+        }
+       Index++;
     }
 
+    private void CinematicEnd()
+    {
+        CancelInvoke(nameof(SwitchCamera));
+        SequenceActive = false;
 
+        Dolly.Priority = 0;
+        foreach (var cam in CinematicCameras)
+        {
+            cam.Priority = 0;
+        }
+
+        PlayerCam.Priority = 15;
+
+        if (PlayerController != null)
+        {
+            PlayerController.enabled = true;
+        }
+    }
 
     private void OnTriggerEnter(Collider other)
     {
-        if(other.tag == "Player")
+        if(!SequenceActive && other.CompareTag("Player"))
         {
-            float distanceToA = Vector3.Distance(PlayerCam.transform.position, FollowCamera1.transform.position);
-            float distanceToB = Vector3.Distance(PlayerCam.transform.position, FollowCamera2.transform.position);
-
-            if(distanceToA < distanceToB)
-            {
-                FollowCamera1.Priority = 12;
-                FollowCamera2.Priority = 0;
-                PlayerCam.Priority = 0;
-            }
-            else
-            {
-                FollowCamera1.Priority = 0;
-                FollowCamera2.Priority = 12;
-                PlayerCam.Priority = 0;
-            }
+            CinematicCameras[0].Priority = 25;
         }
     }
     private void OnTriggerExit(Collider other)
     {
-        if (other.tag == "Player")
+        if (!SequenceActive && other.CompareTag("Player"))
         {
-
-           FollowCamera1.Priority = 0;
-           FollowCamera2.Priority = 0;
-           PlayerCam.Priority =10;
-         
+            CinematicCameras[0].Priority = 0;
+            PlayerCam.Priority = 15;
         }
     }
-
 }
