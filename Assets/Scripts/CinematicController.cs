@@ -27,7 +27,10 @@ public class CinematicController : MonoBehaviour
         {
             PlayerController.enabled = false;
         }
-        InvokeRepeating(nameof(SwitchCamera), 0f, 15f);
+        InvokeRepeating(nameof(SwitchCamera), timePerCamera, timePerCamera);
+
+        Index = -1;
+        ActiveDolly();
     }
 
     private void Update()
@@ -39,6 +42,13 @@ public class CinematicController : MonoBehaviour
         }
     }
 
+    public void ActiveDolly()
+    {
+        Dolly.Priority = 20;
+        foreach (var cam in CinematicCameras) cam.Priority = 0;
+        PlayerCam.Priority = 0;
+    }
+
     [Button]
     public void SwitchCamera()
     {
@@ -48,23 +58,19 @@ public class CinematicController : MonoBehaviour
         }
 
         Dolly.Priority = 0;
+        PlayerCam.Priority = 0;
+        foreach (var cam in CinematicCameras) cam.Priority = 0;
 
-        foreach(var cam in CinematicCameras) cam.Priority = 0;
+        Index++;
 
-        if(Index == -1)
-        {
-            Dolly.Priority = 20;
-        }
-        else if (Index < CinematicCameras.Count)
+        if(Index >= 0 && Index < CinematicCameras.Count)
         {
             CinematicCameras[Index].Priority = 20;
         }
         else
         {
             CinematicEnd();
-            return;
         }
-       Index++;
     }
 
     private void CinematicEnd()

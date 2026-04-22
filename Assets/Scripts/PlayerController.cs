@@ -7,8 +7,6 @@ public class PlayerController : MonoBehaviour
     public InputSystem_Actions inputs;
     private CharacterController controller;
 
-
-
     public float moveSpeed = 5f;
     public float rotationSpeed = 200f;
     public float verticalVelocity = 0;
@@ -21,13 +19,7 @@ public class PlayerController : MonoBehaviour
     public float dashDuration = 0.2f;
     private float dashTimer;
 
-
-
-
     [SerializeField]private Vector2 moveInput;
-
-
-
 
     private void Awake()
     {
@@ -45,9 +37,6 @@ public class PlayerController : MonoBehaviour
         inputs.Player.Jump.performed += OnJump;
 
         inputs.Player.Sprint.performed += OnDash;
-
-        
-
     }
     void Start()
     {
